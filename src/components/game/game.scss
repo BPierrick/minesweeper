@@ -1,0 +1,25 @@
+.gameTitleContainer {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+
+  span {
+    &.title {
+      color: black;
+      font-size: xx-large;
+    }
+
+    &.subTitle {
+        color: grey;
+        font-size: small;
+    }
+  }
+}
+
+.settingButtonsContainer {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}

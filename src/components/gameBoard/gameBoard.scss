@@ -1,3 +1,51 @@
-.cellRow {
+.gameBoardContainer,
+.ReactModalPortal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+
+  .gameBoardHeader {
+    width: 100%;
     display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+
+    .headerRightContainer {
+      height: 100%;
+    }
+
+    .headerLeftContainer {
+      span.switchLabel {
+        font-size: .875rem;
+        color: black;
+      }
+    }
+  }
+
+  .gameBoardModalHeader {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin-bottom: 10px;
+  }
+
+  .gameFinishedContainer {
+    display: flex;
+    flex-direction: column;
+    margin: 10px;
+  }
+  .cellRow {
+    display: flex;
+  }
+
+  button {
+    img {
+      max-width: 20px;
+    }
+    margin: 5px;
+    height: 100%;
+  }
 }

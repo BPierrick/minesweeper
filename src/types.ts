@@ -10,15 +10,16 @@ export interface CellData {
 }
 
 export enum GameStatus {
-    LOST = 'LOST',
-    WON = 'WON',
-    IN_PROGRESS = 'IN_PROGRESS',
-    SETTING_RULES = 'SETTING_RULES'
-} 
+  LOST = "LOST",
+  WON = "WON",
+  IN_PROGRESS = "IN_PROGRESS",
+  SETTING_RULES = "SETTING_RULES"
+}
 
-export interface GameBoardState {
+export interface GameState {
   gameData: GameData;
   gameStatus: GameStatus;
+  isAlternativeFlagAssetOn: boolean
 }
 
 export interface CellLeftClickAction {
@@ -33,4 +34,29 @@ export interface CellRightClickAction {
   y: number;
 }
 
-export type GameBoardAction = CellLeftClickAction | CellRightClickAction;
+export interface SetGameGridAction {
+  type: "SET_GAME_GRID_ACTION";
+  size: number;
+  numberOfMines: number;
+}
+
+export interface InitGameStateAction {
+  type: "INIT_GAME_STATE_ACTION";
+}
+
+export interface SetGameStatusAction {
+  type: "SET_GAME_STATUS_ACTION";
+  gameStatus: GameStatus;
+}
+
+export interface SwitchFlagAssetAction {
+  type: 'SWITCH_FLAG_ASSET_ACTION'
+}
+
+export type GameAction =
+  | CellLeftClickAction
+  | CellRightClickAction
+  | SetGameGridAction
+  | InitGameStateAction
+  | SetGameStatusAction
+  | SwitchFlagAssetAction;

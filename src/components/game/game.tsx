@@ -1,105 +1,114 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useReducer } from "react";
 import { GameStatus } from "../../types";
 import GameBoard from "../gameBoard/gameBoard";
 import Button from "@material-ui/core/Button";
+import { gameReducer } from "../../gameReducer";
+import { setGameStatus } from "../../gameActions";
 import TextField from "@material-ui/core/TextField";
 
+import './game.scss'
+
+/**
+ * Handles input value changes
+ * Used to set either the board size or the number of mines
+ * @param event Event object returned by the onChange listener
+ * @param setState setState method redurned by the useState hook
+ */
 function handleChange(
   event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   setState: React.Dispatch<React.SetStateAction<number>>
 ) {
   const size = parseInt(event.target.value);
-  if (size > 0) {
+  if (isNaN(size)) {
+    setState(-1);
+  } else {
     setState(size);
   }
 }
 
+/**
+ * Game component
+ */
 const Game: React.FC<{}> = () => {
   const [size, setSize] = useState(-1);
   const [numberOfMines, setNumberOfMines] = useState(-1);
-  const [gameStatus, setGameStatus] = useState(GameStatus.SETTING_RULES);
+
+  const [gameState, dispatch] = useReducer(gameReducer, {
+    gameData: [],
+    gameStatus: GameStatus.SETTING_RULES,
+    isAlternativeFlagAssetOn: false
+  });
+
+  const { gameStatus } = gameState;
+
+  useEffect(() => {
+    if (gameStatus === GameStatus.SETTING_RULES) {
+      setSize(-1);
+      setNumberOfMines(-1);
+    }
+  }, [gameStatus]);
 
   switch (gameStatus) {
     case GameStatus.SETTING_RULES: {
-      if (size <= 1) {
-        return (
-          <>
+      return (
+        <>
+          <div className="gameTitleContainer">
+            <span className="title">Welcome to MineSweeper</span>
+            <span className="subTitle">Please select a game board size and a number of mines to set</span>
+          </div>
+          <div className="settingButtonsContainer">
             <TextField
               id="filled-number"
               label="Board Size"
               type="number"
-              variant="outlined"
-              value={size < 0 ? '' : size}
-              onChange={event => handleChange(event, setSize)}
+              variant="standard"
+              value={size < 0 ? "" : size}
+              onChange={(
+                event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+              ) => handleChange(event, setSize)}
+              style={{
+                margin: 5
+              }}
             />
-          </>
-        );
-      } else if (size > 1 && numberOfMines < 0) {
-        return (
-          <>
-            <input
+            <TextField
+              id="filled-number"
+              label="Number of Mines"
               type="number"
-              value={size}
-              onChange={event => handleChange(event, setSize)}
-            />
-            <input
-              type="number"
-              value={0}
-              onChange={event => handleChange(event, setNumberOfMines)}
-            />
-          </>
-        );
-      } else {
-        return (
-          <>
-            <input
-              type="number"
-              value={size}
-              onChange={event => handleChange(event, setSize)}
-            />
-            <input
-              type="number"
-              value={numberOfMines}
-              onChange={event => {
-                if (parseInt(event.target.value) < size * size) {
-                  handleChange(event, setNumberOfMines);
-                }
+              variant="standard"
+              disabled={size <= 1}
+              value={numberOfMines < 0 ? "" : numberOfMines}
+              onChange={(
+                event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+              ) => handleChange(event, setNumberOfMines)}
+              style={{
+                margin: 5
               }}
             />
             <Button
               variant="contained"
-              onClick={() => setGameStatus(GameStatus.IN_PROGRESS)}
+              disabled={
+                size < 0 || numberOfMines < 0 || numberOfMines > size * size
+              }
+              onClick={() => dispatch(setGameStatus(GameStatus.IN_PROGRESS))}
             >
               Start Game
             </Button>
-          </>
-        );
-      }
+          </div>
+        </>
+      );
     }
 
+    case GameStatus.WON:
+    case GameStatus.LOST:
     case GameStatus.IN_PROGRESS: {
       return (
         <GameBoard
+          dispatch={dispatch}
+          gameState={gameState}
           size={size}
           numberOfMines={numberOfMines}
-          setGameStatus={setGameStatus}
         />
       );
-    }
-
-    case GameStatus.LOST: {
-      return (
-        <Button
-          variant="contained"
-          onClick={() => setGameStatus(GameStatus.SETTING_RULES)}
-        >
-          Try again ?
-        </Button>
-      );
-    }
-
-    case GameStatus.WON: {
-      return <>YOU WON</>;
     }
 
     default:

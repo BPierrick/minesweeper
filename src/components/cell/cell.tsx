@@ -3,6 +3,7 @@ import { CellData } from "../../types";
 import "./cell.scss";
 
 interface CellProps {
+  isAlternativeFlagAssetOn?: boolean;
   onLeftClick: (x: number, y: number) => void;
   onRightClick: (
     x: number,
@@ -12,10 +13,21 @@ interface CellProps {
   data: CellData;
 }
 
-function displayCellValue(data: CellData): JSX.Element {
+/**
+ * Renders the cell value regarding its data
+ * @param data Cell data
+ * @param isAlternativeFlagAssetOn Facultative boolean to show alternative flag asset
+ */
+function displayCellValue(
+  data: CellData,
+  isAlternativeFlagAssetOn?: boolean
+): JSX.Element {
   if (data.isFlag) {
-    // return <img src="assets/svg/flag.svg" alt="flag" />;
-    return <img src="assets/png/flag_opt.png" alt="flag" />;
+    return isAlternativeFlagAssetOn ? (
+      <img src="assets/png/flag_opt.png" alt="flag" />
+    ) : (
+      <img src="assets/svg/flag.svg" alt="flag" />
+    );
   }
   if (data.isRevealed) {
     if (data.isMine) {
@@ -29,7 +41,11 @@ function displayCellValue(data: CellData): JSX.Element {
   return <></>;
 }
 
-const Cell: React.FC<CellProps> = props => {
+/**
+ * Cell component
+ * @param props CellProps
+ */
+const Cell: React.FC<CellProps> = (props: CellProps) => {
   return (
     <div
       className="cell"
@@ -38,7 +54,7 @@ const Cell: React.FC<CellProps> = props => {
         props.onRightClick(props.data.x, props.data.y, event)
       }
     >
-      {displayCellValue(props.data)}
+      {displayCellValue(props.data, props.isAlternativeFlagAssetOn)}
     </div>
   );
 };

@@ -1,110 +1,50 @@
-import React, { useReducer, Dispatch, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 
 // ----------------------- Type imports ----------------------------------
-import { GameData, CellData, GameBoardAction, GameStatus } from "../../types";
+import {
+  GameData,
+  CellData,
+  GameAction,
+  GameStatus,
+  GameState
+} from "../../types";
 
 // ----------------------- Action imports --------------------------------
 import {
   cellLeftClickAction,
-  cellRightClickAction
-} from "../../gameBoardActions";
-
-import { gameBoardReducer } from "../../gameBoardReducer";
+  cellRightClickAction,
+  setGameGrid,
+  initGameState,
+  switchFlagAsset
+} from "../../gameActions";
 
 import Cell from "../cell/cell";
-import { Random } from "random-js";
 import "./gameBoard.scss";
-import { getAdjacentCells } from "../../utils";
+import Button from "@material-ui/core/Button";
+import Switch from "@material-ui/core/Switch";
+import SolutionCell from "../solutionCell/solutionCell";
+import Modal from "react-modal";
 
 interface GameBoardProps {
   size: number;
   numberOfMines: number;
-  setGameStatus: React.Dispatch<React.SetStateAction<GameStatus>>;
+  dispatch: React.Dispatch<GameAction>;
+  gameState: GameState;
 }
 
 /**
- *
- * @param size
- */
-function initializeBoard(size: number): GameData {
-  const gameDataInitialized: GameData = [];
-  for (let x = 0; x < size; x++) {
-    gameDataInitialized.push([]);
-    for (let y = 0; y < size; y++) {
-      gameDataInitialized[x].push({
-        x,
-        y,
-        isFlag: false,
-        isMine: false,
-        isRevealed: false,
-        numberOfAdjacentMines: 0
-      });
-    }
-  }
-
-  return gameDataInitialized;
-}
-
-/**
- *
- * @param gameData
- * @param numberOfMines
- */
-function setMines(gameData: GameData, numberOfMines: number): GameData {
-  const random = new Random();
-  const gameDataCopy: GameData = gameData;
-  const size: number = gameData.length;
-  let minesCount: number = 0;
-
-  while (minesCount < numberOfMines) {
-    const randomX: number = random.integer(0, size - 1);
-    const randomY: number = random.integer(0, size - 1);
-
-    if (!gameDataCopy[randomX][randomY].isMine) {
-      gameDataCopy[randomX][randomY].isMine = true;
-      minesCount++;
-    }
-  }
-
-  return gameDataCopy;
-}
-
-/**
- *
- * @param gameData
- */
-function setNumberOfAdjacentMines(gameData: GameData): GameData {
-  const gameDataCopy: GameData = gameData;
-  const size: number = gameData.length;
-
-  for (let x = 0; x < size; x++) {
-    for (let y = 0; y < size; y++) {
-      const gameCellNeighbours: Array<CellData> = getAdjacentCells(
-        x,
-        y,
-        gameData
-      );
-      gameCellNeighbours.forEach((cell: CellData) => {
-        if (cell.isMine) {
-          gameDataCopy[x][y].numberOfAdjacentMines++;
-        }
-      });
-    }
-  }
-
-  return gameDataCopy;
-}
-
-/**
- *
- * @param gameData
+ * Renders the whole game board
+ * @param gameData Object containing all cell data
+ * @param dispatch Dispatch method returned by useReducer hook
+ * @param isAlternativeFlagAssetOn Facultative boolean to show alternative flag asset
  */
 function renderGameBoard(
   gameData: GameData,
-  dispatch: Dispatch<GameBoardAction>
-) {
+  dispatch: React.Dispatch<GameAction>,
+  isAlternativeFlagAssetOn?: boolean
+): JSX.Element {
   return (
-    <>
+    <div className="gameGrid">
       {gameData.map((gameDataRow: Array<CellData>, rowIndex: number) => {
         return (
           <div className="cellRow" key={rowIndex}>
@@ -113,10 +53,15 @@ function renderGameBoard(
                 <Cell
                   key={`cellData ${cellData.x}${cellData.y}`}
                   data={cellData}
-                  onLeftClick={(x, y) => {
+                  isAlternativeFlagAssetOn={isAlternativeFlagAssetOn}
+                  onLeftClick={(x: number, y: number) => {
                     dispatch(cellLeftClickAction(x, y));
                   }}
-                  onRightClick={(x, y, event) => {
+                  onRightClick={(
+                    x: number,
+                    y: number,
+                    event: React.MouseEvent<HTMLDivElement, MouseEvent>
+                  ) => {
                     event.preventDefault();
                     dispatch(cellRightClickAction(x, y));
                   }}
@@ -126,31 +71,144 @@ function renderGameBoard(
           </div>
         );
       })}
-    </>
+    </div>
   );
 }
 
-const GameBoard: React.FC<GameBoardProps> = props => {
-  let gameData = initializeBoard(props.size);
-  gameData = setMines(gameData, props.numberOfMines);
-  gameData = setNumberOfAdjacentMines(gameData);
+/**
+ * Renders the whole game board with all cell values shown
+ * @param gameData Object containing all cell data
+ */
+function renderSolutionGameBoardModal(gameData: GameData): React.ReactNode {
+  return (
+    <div className="gameGrid">
+      {gameData.map((gameDataRow: Array<CellData>, rowIndex: number) => {
+        return (
+          <div className="cellRow" key={rowIndex}>
+            {gameDataRow.map((cellData: CellData) => {
+              return (
+                <SolutionCell
+                  key={`cellData ${cellData.x}${cellData.y}`}
+                  data={cellData}
+                />
+              );
+            })}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
-  const [gameState, dispatch] = useReducer(gameBoardReducer, {
-    gameData,
-    gameStatus: GameStatus.SETTING_RULES
-  });
+/**
+ * Game board component
+ * @param props GameBoardProps
+ */
+const GameBoard: React.FC<GameBoardProps> = (props: GameBoardProps) => {
+  const { gameState, dispatch, size, numberOfMines } = props;
+  const [openModal, setOpenModal] = useState(false);
 
+  //Only fired when component in mounted (after first render)
+  //To initialize the board game
   useEffect(() => {
-    if (gameState.gameStatus === GameStatus.LOST) {
-      props.setGameStatus(GameStatus.LOST);
-    }
+    dispatch(setGameGrid(size, numberOfMines));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-    if (gameState.gameStatus === GameStatus.WON) {
-      props.setGameStatus(GameStatus.WON);
-    }
-  });
+  let gameFinishedComponent: JSX.Element = <></>;
 
-  return renderGameBoard(gameState.gameData, dispatch);
+  if (gameState.gameStatus === GameStatus.LOST) {
+    gameFinishedComponent = (
+      <div className="gameFinishedContainer">
+        <span>YOU LOSE</span>
+        <Button
+          variant="contained"
+          onClick={() => dispatch(initGameState())}
+          style={{ margin: 5 }}
+        >
+          Try again ?
+        </Button>
+      </div>
+    );
+  }
+
+  if (gameState.gameStatus === GameStatus.WON) {
+    gameFinishedComponent = (
+      <div className="gameFinishedContainer">
+        <span>YOU WIN</span>
+        <Button
+          variant="contained"
+          onClick={() => dispatch(initGameState())}
+          style={{ margin: 5 }}
+        >
+          Try again ?
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="gameBoardContainer">
+      {gameFinishedComponent}
+      <div className="gameBoardHeader">
+        <div className="headerLeftContainer">
+          <span className="switchLabel">Change flag image asset</span>
+          <Switch
+            checked={gameState.isAlternativeFlagAssetOn}
+            onChange={() => {
+              dispatch(switchFlagAsset());
+            }}
+          />
+        </div>
+        <div className="headerRightContainer">
+          <Button variant="contained" onClick={() => dispatch(initGameState())}>
+            QUIT
+          </Button>
+          <Button
+            variant="contained"
+            onClick={() => {
+              setOpenModal(true);
+            }}
+          >
+            <img src="assets/svg/solution_icon.svg" alt="Show solution" />
+          </Button>
+        </div>
+      </div>
+      <Modal
+        isOpen={openModal}
+        onRequestClose={() => setOpenModal(false)}
+        style={{
+          content: {
+            backgroundColor: "transparent",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexDirection: "column",
+            height: "fitContent",
+            width: "fitContent"
+          }
+        }}
+      >
+        <div className="modalGameBoardContainer">
+          <div className="gameBoardModalHeader">
+            <Button
+              variant="contained"
+              onClick={() => setOpenModal(false)}
+              style={{ width: "fitContent" }}
+            >
+              <img src="assets/svg/close.svg" alt="Close" />
+            </Button>
+          </div>
+          {renderSolutionGameBoardModal(gameState.gameData)}
+        </div>
+      </Modal>
+      {renderGameBoard(
+        gameState.gameData,
+        dispatch,
+        gameState.isAlternativeFlagAssetOn
+      )}
+    </div>
+  );
 };
 
 export default GameBoard;
