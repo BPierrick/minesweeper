@@ -6,7 +6,7 @@ import { gameReducer } from "../../gameReducer";
 import { setGameStatus } from "../../gameActions";
 import TextField from "@material-ui/core/TextField";
 
-import './game.scss'
+import "./game.scss";
 
 /**
  * Handles input value changes
@@ -16,13 +16,20 @@ import './game.scss'
  */
 function handleChange(
   event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  setState: React.Dispatch<React.SetStateAction<number>>
+  setState: React.Dispatch<React.SetStateAction<number>>,
+  isSettingSize?: boolean
 ) {
   const size = parseInt(event.target.value);
   if (isNaN(size)) {
     setState(-1);
   } else {
-    setState(size);
+    if (isSettingSize) {
+      if (size <= 50) {
+        setState(size);
+      }
+    } else {
+      setState(size);
+    }
   }
 }
 
@@ -54,7 +61,9 @@ const Game: React.FC<{}> = () => {
         <>
           <div className="gameTitleContainer">
             <span className="title">Welcome to MineSweeper</span>
-            <span className="subTitle">Please select a game board size and a number of mines to set</span>
+            <span className="subTitle">
+              Please select a game board size and a number of mines to set
+            </span>
           </div>
           <div className="settingButtonsContainer">
             <TextField
@@ -65,7 +74,7 @@ const Game: React.FC<{}> = () => {
               value={size < 0 ? "" : size}
               onChange={(
                 event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-              ) => handleChange(event, setSize)}
+              ) => handleChange(event, setSize, true)}
               style={{
                 margin: 5
               }}
