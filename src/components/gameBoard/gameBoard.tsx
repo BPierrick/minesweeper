@@ -15,7 +15,8 @@ import {
   cellRightClickAction,
   setGameGrid,
   initGameState,
-  switchFlagAsset
+  switchFlagAsset,
+  setGameStatus
 } from "../../gameActions";
 
 import Cell from "../cell/cell";
@@ -123,7 +124,10 @@ const GameBoard: React.FC<GameBoardProps> = (props: GameBoardProps) => {
         <span>YOU LOSE</span>
         <Button
           variant="contained"
-          onClick={() => dispatch(initGameState())}
+          onClick={() => {
+            dispatch(setGameGrid(size, numberOfMines));
+            dispatch(setGameStatus(GameStatus.IN_PROGRESS));
+          }}
           style={{ margin: 5 }}
         >
           Try again ?
@@ -138,7 +142,10 @@ const GameBoard: React.FC<GameBoardProps> = (props: GameBoardProps) => {
         <span>YOU WIN</span>
         <Button
           variant="contained"
-          onClick={() => dispatch(initGameState())}
+          onClick={() => {
+            dispatch(setGameGrid(size, numberOfMines));
+            dispatch(setGameStatus(GameStatus.IN_PROGRESS));
+          }}
           style={{ margin: 5 }}
         >
           Try again ?
