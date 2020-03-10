@@ -9,7 +9,7 @@
     width: 100%;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: space-around;
     margin-bottom: 10px;
 
     .headerRightContainer {
@@ -39,6 +39,10 @@
   }
   .cellRow {
     display: flex;
+    width: 100vw;
+    margin: 1px;
+    justify-content: center;
+    max-height: 50px;
   }
 
   button {

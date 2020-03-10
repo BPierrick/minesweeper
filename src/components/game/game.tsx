@@ -8,6 +8,8 @@ import TextField from "@material-ui/core/TextField";
 
 import "./game.scss";
 
+export const SizeContext: React.Context<number> = React.createContext(-1);
+
 /**
  * Handles input value changes
  * Used to set either the board size or the number of mines
@@ -111,12 +113,14 @@ const Game: React.FC<{}> = () => {
     case GameStatus.LOST:
     case GameStatus.IN_PROGRESS: {
       return (
-        <GameBoard
-          dispatch={dispatch}
-          gameState={gameState}
-          size={size}
-          numberOfMines={numberOfMines}
-        />
+        <SizeContext.Provider value={size}>
+          <GameBoard
+            dispatch={dispatch}
+            gameState={gameState}
+            size={size}
+            numberOfMines={numberOfMines}
+          />
+        </SizeContext.Provider>
       );
     }
 

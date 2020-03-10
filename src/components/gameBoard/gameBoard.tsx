@@ -44,11 +44,17 @@ function renderGameBoard(
   dispatch: React.Dispatch<GameAction>,
   isAlternativeFlagAssetOn?: boolean
 ): JSX.Element {
+  const size: number = gameData.length;
+
   return (
     <div className="gameGrid">
       {gameData.map((gameDataRow: Array<CellData>, rowIndex: number) => {
         return (
-          <div className="cellRow" key={rowIndex}>
+          <div
+            className="cellRow"
+            key={rowIndex}
+            style={{height: `Calc(90vw/${size})` }}
+          >
             {gameDataRow.map((cellData: CellData) => {
               return (
                 <Cell

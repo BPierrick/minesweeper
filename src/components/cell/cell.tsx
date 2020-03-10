@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useContext } from "react";
 import { CellData } from "../../types";
 import "./cell.scss";
+import { SizeContext } from "../game/game";
 
 interface CellProps {
   isAlternativeFlagAssetOn?: boolean;
@@ -20,6 +21,7 @@ interface CellProps {
  */
 function displayCellValue(
   data: CellData,
+  boardSize: number,
   isAlternativeFlagAssetOn?: boolean
 ): JSX.Element {
   if (data.isFlag) {
@@ -46,6 +48,7 @@ function displayCellValue(
  * @param props CellProps
  */
 const Cell: React.FC<CellProps> = (props: CellProps) => {
+  const size: number = useContext(SizeContext);
   return (
     <div
       className="cell"
@@ -53,8 +56,12 @@ const Cell: React.FC<CellProps> = (props: CellProps) => {
       onContextMenu={(event: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
         props.onRightClick(props.data.x, props.data.y, event)
       }
+      style={{
+        width: `calc(90%/${size})`,
+        height: `100%`
+      }}
     >
-      {displayCellValue(props.data, props.isAlternativeFlagAssetOn)}
+      {displayCellValue(props.data, size, props.isAlternativeFlagAssetOn)}
     </div>
   );
 };
