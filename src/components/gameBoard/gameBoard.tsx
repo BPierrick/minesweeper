@@ -53,7 +53,7 @@ function renderGameBoard(
           <div
             className="cellRow"
             key={rowIndex}
-            style={{height: `Calc(90vw/${size})` }}
+            style={{ height: `Calc(90vw/${size})` }}
           >
             {gameDataRow.map((cellData: CellData) => {
               return (
@@ -87,11 +87,17 @@ function renderGameBoard(
  * @param gameData Object containing all cell data
  */
 function renderSolutionGameBoardModal(gameData: GameData): React.ReactNode {
+  const size: number = gameData.length;
+
   return (
     <div className="gameGrid">
       {gameData.map((gameDataRow: Array<CellData>, rowIndex: number) => {
         return (
-          <div className="cellRow" key={rowIndex}>
+          <div
+            className="cellRow"
+            key={rowIndex}
+            style={{ height: `Calc(90vw/${size})` }}
+          >
             {gameDataRow.map((cellData: CellData) => {
               return (
                 <SolutionCell

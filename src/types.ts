@@ -7,6 +7,7 @@ export interface CellData {
   isRevealed: boolean;
   isFlag: boolean;
   numberOfAdjacentMines: number;
+  isVisited: boolean;
 }
 
 export enum GameStatus {

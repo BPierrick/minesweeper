@@ -51,6 +51,75 @@ export function getAdjacentCells(
 }
 
 /**
+ * Returns an array of the neighbour CellData of the one located at (x,y) coordinates
+ * @param x X coordinate of the current cell
+ * @param y Y coordinate of the current cell
+ * @param gameData Object containing all cell data
+ */
+export function getNotVisitedAdjacentCells(
+  x: number,
+  y: number,
+  gameData: GameData
+): Array<CellData> {
+  const adjacentCellDataArray = [];
+  const size = gameData.length;
+
+  //left located column
+  if (x > 0) {
+    if (!gameData[x - 1][y].isVisited) {
+      adjacentCellDataArray.push(gameData[x - 1][y]);
+      gameData[x - 1][y].isVisited = true;
+    }
+    if (y > 0 && !gameData[x - 1][y - 1].isVisited) {
+      adjacentCellDataArray.push(gameData[x - 1][y - 1]);
+      gameData[x - 1][y - 1].isVisited = true;
+    }
+    if (y < size - 1 && !gameData[x - 1][y + 1].isVisited) {
+      adjacentCellDataArray.push(gameData[x - 1][y + 1]);
+      gameData[x - 1][y + 1].isVisited = true;
+    }
+  }
+
+  //right located column
+  if (x < size - 1) {
+    if (!gameData[x + 1][y].isVisited) {
+      adjacentCellDataArray.push(gameData[x + 1][y]);
+      gameData[x + 1][y].isVisited = true;
+    }
+    if (y > 0 && !gameData[x + 1][y - 1].isVisited) {
+      adjacentCellDataArray.push(gameData[x + 1][y - 1]);
+      gameData[x + 1][y - 1].isVisited = true;
+    }
+    if (y < size - 1 && !gameData[x + 1][y + 1].isVisited) {
+      adjacentCellDataArray.push(gameData[x + 1][y + 1]);
+      gameData[x + 1][y + 1].isVisited = true;
+    }
+  }
+
+  //top cell
+  if (y > 0 && !gameData[x][y - 1].isVisited) {
+    adjacentCellDataArray.push(gameData[x][y - 1]);
+    gameData[x][y - 1].isVisited = true;
+  }
+
+  //down cell
+  if (y < size - 1 && !gameData[x][y + 1].isVisited) {
+    adjacentCellDataArray.push(gameData[x][y + 1]);
+    gameData[x][y + 1].isVisited = true;
+  }
+
+  return adjacentCellDataArray;
+}
+
+export function resetVisitedCells(gameData: GameData): void {
+  for (const cellRow of gameData) {
+    for (const cellData of cellRow) {
+      cellData.isVisited = false;
+    }
+  }
+}
+
+/**
  * Returns an initialized GameData object with empty cells
  * @param size Size of the board game which will be the size of the returned GameData object.
  */
@@ -65,7 +134,8 @@ export function initializeBoard(size: number): GameData {
         isFlag: false,
         isMine: false,
         isRevealed: false,
-        numberOfAdjacentMines: 0
+        numberOfAdjacentMines: 0,
+        isVisited: false
       });
     }
   }
@@ -96,8 +166,6 @@ export function setMines(gameData: GameData, numberOfMines: number): GameData {
 
   return gameDataCopy;
 }
-
-
 
 /**
  *  For each cell data object, sets its numberOfAdjacentMines attribute value regarding the mines around it
@@ -131,7 +199,11 @@ export function setNumberOfAdjacentMines(gameData: GameData): GameData {
  * @param x X coordinate of the cell which has been clicked on
  * @param y Y coordinate of the cell which has been clicked on
  */
-export function handleLeftClick(gameState: GameState, x: number, y: number): void {
+export function handleLeftClick(
+  gameState: GameState,
+  x: number,
+  y: number
+): void {
   const gameData = gameState.gameData;
   const currentCell = gameData[x][y];
   if (currentCell.isRevealed || currentCell.isFlag) {
@@ -146,6 +218,7 @@ export function handleLeftClick(gameState: GameState, x: number, y: number): voi
     currentCell.isRevealed = true;
     if (currentCell.numberOfAdjacentMines === 0) {
       showEmptyCells(gameData, x, y);
+      resetVisitedCells(gameData);
     }
     if (isGameFinished(gameData)) {
       if (isGameWon(gameData)) {
@@ -158,13 +231,17 @@ export function handleLeftClick(gameState: GameState, x: number, y: number): voi
 }
 
 /**
- * Handles the action of right click on a cell following the minesweeper game rules. 
+ * Handles the action of right click on a cell following the minesweeper game rules.
  * Basically sets a flag to the cell, or removes it if there was one.
  * @param gameState GameState of the gameReducer
  * @param x X coordinate of the cell which has been clicked on
  * @param y Y coordinate of the cell which has been clicked on
  */
-export function handleRightClick(gameState: GameState, x: number, y: number): void {
+export function handleRightClick(
+  gameState: GameState,
+  x: number,
+  y: number
+): void {
   const gameData = gameState.gameData;
   const currentCell = gameData[x][y];
   if (!currentCell.isRevealed) {
@@ -181,22 +258,31 @@ export function handleRightClick(gameState: GameState, x: number, y: number): vo
 }
 
 /**
- * Recursively shows all empty cells directly connected to the first cell used when called the algorithm. 
+ * Recursively shows all empty cells directly connected to the first cell used when called the algorithm.
  * Stops when the current cell is either shown, a flag, a mine or has a mine next to it
  * @param gameData GameData object containing all the cell data
  * @param x X coordinate of the current cell
  * @param y Y coordinate of the current cell
  */
-function showEmptyCells(gameData: GameData, x: number, y: number): void {
-  const cellNeighbours = getAdjacentCells(x, y, gameData);
-  cellNeighbours.forEach((cellData: CellData) => {
+function showEmptyCells(
+  gameData: GameData,
+  x: number,
+  y: number,
+  prevX?: number,
+  prevY?: number
+): void {
+  const cellNeighbours = getNotVisitedAdjacentCells(x, y, gameData);
+  for (const cellData of cellNeighbours) {
     if (!cellData.isRevealed && !cellData.isFlag && !cellData.isMine) {
       cellData.isRevealed = true;
       if (cellData.numberOfAdjacentMines === 0) {
-        showEmptyCells(gameData, cellData.x, cellData.y);
+        if (cellData.x === prevX && cellData.y === prevY) {
+          console.log("optimize you prick");
+        }
+        showEmptyCells(gameData, cellData.x, cellData.y, x, y);
       }
     }
-  });
+  }
 }
 
 /**

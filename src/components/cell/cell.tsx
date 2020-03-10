@@ -21,7 +21,6 @@ interface CellProps {
  */
 function displayCellValue(
   data: CellData,
-  boardSize: number,
   isAlternativeFlagAssetOn?: boolean
 ): JSX.Element {
   if (data.isFlag) {
@@ -61,7 +60,7 @@ const Cell: React.FC<CellProps> = (props: CellProps) => {
         height: `100%`
       }}
     >
-      {displayCellValue(props.data, size, props.isAlternativeFlagAssetOn)}
+      {displayCellValue(props.data, props.isAlternativeFlagAssetOn)}
     </div>
   );
 };

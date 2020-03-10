@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useContext } from "react";
 import { CellData } from "../../types";
+import { SizeContext } from "../game/game";
 
 interface SolutionCellProps {
   data: CellData;
@@ -24,7 +25,18 @@ function displayCellValue(data: CellData): JSX.Element {
  * @param props SolutionCellProps
  */
 const SolutionCell: React.FC<SolutionCellProps> = props => {
-  return <div className="cell">{displayCellValue(props.data)}</div>;
+  const size: number = useContext(SizeContext);
+  return (
+    <div
+      className="cell"
+      style={{
+        width: `calc(90%/${size})`,
+        height: `100%`
+      }}
+    >
+      {displayCellValue(props.data)}
+    </div>
+  );
 };
 
 export default SolutionCell;

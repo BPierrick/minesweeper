@@ -26,7 +26,7 @@ function handleChange(
     setState(-1);
   } else {
     if (isSettingSize) {
-      if (size <= 50) {
+      if (size <= 100) {
         setState(size);
       }
     } else {
