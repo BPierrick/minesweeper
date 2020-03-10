@@ -5,6 +5,11 @@
   justify-content: center;
   flex-direction: column;
 
+  .gameGrid {
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
   .gameBoardHeader {
     width: 100%;
     display: flex;
@@ -44,6 +49,7 @@
     margin: 1px;
     justify-content: center;
     max-height: 50px;
+    min-height: 10px;
   }
 
   button {
