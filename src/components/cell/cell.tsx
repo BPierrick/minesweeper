@@ -12,6 +12,7 @@ interface CellProps {
     event: React.MouseEvent<HTMLDivElement, MouseEvent>
   ) => void;
   data: CellData;
+  showCellValues: boolean
 }
 
 /**
@@ -21,16 +22,17 @@ interface CellProps {
  */
 function displayCellValue(
   data: CellData,
+  showCellValues: boolean,
   isAlternativeFlagAssetOn?: boolean
 ): JSX.Element {
-  if (data.isFlag) {
+  if (data.isFlag && !showCellValues) {
     return isAlternativeFlagAssetOn ? (
       <img src="assets/png/flag_opt.png" alt="flag" />
     ) : (
       <img src="assets/svg/flag.svg" alt="flag" />
     );
   }
-  if (data.isRevealed) {
+  if (data.isRevealed || showCellValues) {
     if (data.isMine) {
       return <img src="assets/svg/bomb.svg" alt="bomb" />;
     } else if (data.numberOfAdjacentMines > 0) {
@@ -60,7 +62,7 @@ const Cell: React.FC<CellProps> = (props: CellProps) => {
         height: `100%`
       }}
     >
-      {displayCellValue(props.data, props.isAlternativeFlagAssetOn)}
+      {displayCellValue(props.data, props.showCellValues, props.isAlternativeFlagAssetOn)}
     </div>
   );
 };

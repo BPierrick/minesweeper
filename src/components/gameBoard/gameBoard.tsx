@@ -23,8 +23,6 @@ import Cell from "../cell/cell";
 import "./gameBoard.scss";
 import Button from "@material-ui/core/Button";
 import Switch from "@material-ui/core/Switch";
-import SolutionCell from "../solutionCell/solutionCell";
-import Modal from "react-modal";
 
 interface GameBoardProps {
   size: number;
@@ -42,6 +40,7 @@ interface GameBoardProps {
 function renderGameBoard(
   gameData: GameData,
   dispatch: React.Dispatch<GameAction>,
+  showCellValues: boolean,
   isAlternativeFlagAssetOn?: boolean
 ): JSX.Element {
   const size: number = gameData.length;
@@ -61,6 +60,7 @@ function renderGameBoard(
                   key={`cellData ${cellData.x}${cellData.y}`}
                   data={cellData}
                   isAlternativeFlagAssetOn={isAlternativeFlagAssetOn}
+                  showCellValues={showCellValues}
                   onLeftClick={(x: number, y: number) => {
                     dispatch(cellLeftClickAction(x, y));
                   }}
@@ -82,33 +82,25 @@ function renderGameBoard(
   );
 }
 
-/**
- * Renders the whole game board with all cell values shown
- * @param gameData Object containing all cell data
- */
-function renderSolutionGameBoardModal(gameData: GameData): React.ReactNode {
-  const size: number = gameData.length;
-
+function renderGameFinishedComponent(
+  gameFinishedLabel: string,
+  dispatch: React.Dispatch<GameAction>,
+  size: number,
+  numberOfMines: number
+) {
   return (
-    <div className="gameGrid">
-      {gameData.map((gameDataRow: Array<CellData>, rowIndex: number) => {
-        return (
-          <div
-            className="cellRow"
-            key={rowIndex}
-            style={{ height: `Calc(90vw/${size})` }}
-          >
-            {gameDataRow.map((cellData: CellData) => {
-              return (
-                <SolutionCell
-                  key={`cellData ${cellData.x}${cellData.y}`}
-                  data={cellData}
-                />
-              );
-            })}
-          </div>
-        );
-      })}
+    <div className="gameFinishedContainer">
+      <span>{gameFinishedLabel}</span>
+      <Button
+        variant="contained"
+        onClick={() => {
+          dispatch(setGameGrid(size, numberOfMines));
+          dispatch(setGameStatus(GameStatus.IN_PROGRESS));
+        }}
+        style={{ margin: 5 }}
+      >
+        Try again ?
+      </Button>
     </div>
   );
 }
@@ -119,7 +111,7 @@ function renderSolutionGameBoardModal(gameData: GameData): React.ReactNode {
  */
 const GameBoard: React.FC<GameBoardProps> = (props: GameBoardProps) => {
   const { gameState, dispatch, size, numberOfMines } = props;
-  const [openModal, setOpenModal] = useState(false);
+  const [showCellValues, setShowCellValues] = useState(false);
 
   //Only fired when component in mounted (after first render)
   //To initialize the board game
@@ -131,38 +123,20 @@ const GameBoard: React.FC<GameBoardProps> = (props: GameBoardProps) => {
   let gameFinishedComponent: JSX.Element = <></>;
 
   if (gameState.gameStatus === GameStatus.LOST) {
-    gameFinishedComponent = (
-      <div className="gameFinishedContainer">
-        <span>YOU LOSE</span>
-        <Button
-          variant="contained"
-          onClick={() => {
-            dispatch(setGameGrid(size, numberOfMines));
-            dispatch(setGameStatus(GameStatus.IN_PROGRESS));
-          }}
-          style={{ margin: 5 }}
-        >
-          Try again ?
-        </Button>
-      </div>
+    gameFinishedComponent = renderGameFinishedComponent(
+      "YOU LOSE",
+      dispatch,
+      size,
+      numberOfMines
     );
   }
 
   if (gameState.gameStatus === GameStatus.WON) {
-    gameFinishedComponent = (
-      <div className="gameFinishedContainer">
-        <span>YOU WIN</span>
-        <Button
-          variant="contained"
-          onClick={() => {
-            dispatch(setGameGrid(size, numberOfMines));
-            dispatch(setGameStatus(GameStatus.IN_PROGRESS));
-          }}
-          style={{ margin: 5 }}
-        >
-          Try again ?
-        </Button>
-      </div>
+    gameFinishedComponent = renderGameFinishedComponent(
+      "YOU WIN",
+      dispatch,
+      size,
+      numberOfMines
     );
   }
 
@@ -186,44 +160,24 @@ const GameBoard: React.FC<GameBoardProps> = (props: GameBoardProps) => {
           <Button
             variant="contained"
             onClick={() => {
-              setOpenModal(true);
+              setShowCellValues(!showCellValues);
             }}
           >
-            <img src="assets/svg/solution_icon.svg" alt="Show solution" />
+            <img
+              src={
+                showCellValues
+                  ? "assets/svg/hide_solution_icon.svg"
+                  : "assets/svg/show_solution_icon.svg"
+              }
+              alt="Show solution"
+            />
           </Button>
         </div>
       </div>
-      <Modal
-        isOpen={openModal}
-        onRequestClose={() => setOpenModal(false)}
-        style={{
-          content: {
-            backgroundColor: "transparent",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flexDirection: "column",
-            height: "fitContent",
-            width: "fitContent"
-          }
-        }}
-      >
-        <div className="modalGameBoardContainer">
-          <div className="gameBoardModalHeader">
-            <Button
-              variant="contained"
-              onClick={() => setOpenModal(false)}
-              style={{ width: "fitContent" }}
-            >
-              <img src="assets/svg/close.svg" alt="Close" />
-            </Button>
-          </div>
-          {renderSolutionGameBoardModal(gameState.gameData)}
-        </div>
-      </Modal>
       {renderGameBoard(
         gameState.gameData,
         dispatch,
+        showCellValues,
         gameState.isAlternativeFlagAssetOn
       )}
     </div>
