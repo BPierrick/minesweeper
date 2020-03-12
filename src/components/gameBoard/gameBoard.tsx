@@ -69,7 +69,6 @@ function renderGameBoard(
                     y: number,
                     event: React.MouseEvent<HTMLDivElement, MouseEvent>
                   ) => {
-                    event.preventDefault();
                     dispatch(cellRightClickAction(x, y));
                   }}
                 />

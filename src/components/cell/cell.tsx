@@ -12,7 +12,7 @@ interface CellProps {
     event: React.MouseEvent<HTMLDivElement, MouseEvent>
   ) => void;
   data: CellData;
-  showCellValues: boolean
+  showCellValues: boolean;
 }
 
 /**
@@ -53,16 +53,25 @@ const Cell: React.FC<CellProps> = (props: CellProps) => {
   return (
     <div
       className="cell"
-      onClick={() => props.onLeftClick(props.data.x, props.data.y)}
-      onContextMenu={(event: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
-        props.onRightClick(props.data.x, props.data.y, event)
-      }
+      onClick={() => {
+        if (!props.showCellValues)
+          props.onLeftClick(props.data.x, props.data.y);
+      }}
+      onContextMenu={(event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+        event.preventDefault();
+        if (!props.showCellValues)
+          props.onRightClick(props.data.x, props.data.y, event);
+      }}
       style={{
         width: `calc(90%/${size})`,
         height: `100%`
       }}
     >
-      {displayCellValue(props.data, props.showCellValues, props.isAlternativeFlagAssetOn)}
+      {displayCellValue(
+        props.data,
+        props.showCellValues,
+        props.isAlternativeFlagAssetOn
+      )}
     </div>
   );
 };
