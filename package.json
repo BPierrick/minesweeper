@@ -13,7 +13,7 @@
     "@types/react-dom": "^16.9.0",
     "@types/react-modal": "^3.10.5",
     "immer": "^6.0.1",
-    "node-sass": "^4.13.1",
+    "node-sass": "^7.0.0",
     "random-js": "^2.1.0",
     "react": "^16.13.0",
     "react-dom": "^16.13.0",
